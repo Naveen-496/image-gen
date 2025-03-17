@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { useChat } from "@/hooks/use-chat";
+import { useRouter } from "next/navigation";
 
 export function ChatInputBox() {
+  const router = useRouter();
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { input, handleInputChange, handleSubmit } = useChat();
 
@@ -54,6 +56,7 @@ export function ChatInputBox() {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
             handleSubmit();
+            router.refresh();
             // if (isLoading) {
             //   toast.error("Please wait for the model to finish its response!");
             // } else {

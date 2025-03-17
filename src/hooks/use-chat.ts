@@ -21,6 +21,7 @@ interface ChatStore {
   input: string;
   isSubmitting: boolean;
   imageUrl?: string;
+  error?: string;
   handleInputChange: (value: string) => void;
   handleSubmit: () => Promise<void>;
 }
@@ -29,7 +30,8 @@ export const useChat = create<ChatStore>((set, get) => ({
   messages: [],
   input: "",
   isSubmitting: false,
-  imageUrl: "/generated-images/image-1742196906084.png",
+  imageUrl: "",
+  error: "",
 
   handleInputChange: (value) => {
     set({ input: value });
@@ -59,21 +61,13 @@ export const useChat = create<ChatStore>((set, get) => ({
       if (!response.ok) throw new Error("Failed to generate image");
 
       const { imageUrl } = await response.json();
-
-      // const aiMessage: AiMessage = {
-      //   id: (Date.now() + 1).toString(),
-      //   content: "Here's the generated image:",
-      //   role: "assistant",
-      //   imageUrl,
-      // };
-
       set((state) => ({
         isSubmitting: false,
         imageUrl,
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching AI response:", error);
-      set({ isSubmitting: false });
+      set({ isSubmitting: false, error: error.message });
     }
   },
 }));

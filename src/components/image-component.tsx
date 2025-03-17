@@ -21,18 +21,16 @@ export const ImageComponent = ({
   alt,
   caption,
   className,
-  width = 512,
-  height = 512,
+  width = 350,
+  height = 350,
   priority = false,
 }: ImageComponentProps) => {
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { imageUrl } = useChat();
+  const { imageUrl, isSubmitting } = useChat();
 
   useEffect(() => {
     // Reset states when src changes
-    setIsLoading(true);
     setError(null);
   }, [imageUrl]);
 
@@ -43,9 +41,9 @@ export const ImageComponent = ({
           "relative overflow-hidden rounded-lg border border-border bg-muted shadow-sm",
           className
         )}
-        style={{ width: width, height: isLoading ? height : "auto" }}
+        style={{ width: width, height: isSubmitting ? height : "auto" }}
       >
-        {isLoading && (
+        {isSubmitting && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
@@ -65,11 +63,11 @@ export const ImageComponent = ({
             priority={priority}
             className={cn(
               "object-cover transition-opacity duration-300",
-              isLoading ? "opacity-0" : "opacity-100"
+              isSubmitting ? "opacity-0" : "opacity-100"
             )}
-            onLoad={() => setIsLoading(false)}
+            // onLoad={() => setIsLoading(false)}
             onError={() => {
-              setIsLoading(false);
+              //   setIsLoading(false);
               setError("Failed to load image. Please try again.");
             }}
           />

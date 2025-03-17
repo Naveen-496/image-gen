@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fal } from "@ai-sdk/fal";
-import { experimental_generateImage as generateImage } from "ai";
+import { google } from "@ai-sdk/google";
+import { experimental_generateImage as generateImage, generateText } from "ai";
 import fs from "fs";
 import path from "path";
+import { revalidatePath } from "next/cache";
+import { db } from "@/db";
 
 const defaultPrompt = "A serene mountain landscape at sunset";
 const imagesDir = path.join(process.cwd(), "public", "generated-images");
@@ -17,9 +20,16 @@ export async function POST(request: NextRequest) {
     const { prompt } = await request.json();
     console.log({ prompt });
 
+    const { text } = await generateText({
+      model: google("models/gemini-2.0-pro-exp-02-05"),
+      system:
+        "Generate a short and descriptive title based on the user's prompt, ideally within 5-7 words.",
+      prompt,
+    });
+
     // Generate the image
     const { image } = await generateImage({
-      model: fal.image("fal-ai/fast-sdxl"),
+      model: fal.image("fal-ai/flux-lora"),
       prompt: prompt || defaultPrompt,
     });
 
@@ -31,6 +41,15 @@ export async function POST(request: NextRequest) {
     fs.writeFileSync(filepath, image.uint8Array);
     console.log(`Image saved at: ${filepath}`);
 
+    const saved = await db.image.create({
+      data: {
+        imageUrl: `/generated-images/${filename}`,
+        name: text,
+        prompt,
+      },
+    });
+    console.log("Saved: ", saved);
+    revalidatePath("/");
     // Return image URL
     return NextResponse.json({
       message: "Image generated successfully",
